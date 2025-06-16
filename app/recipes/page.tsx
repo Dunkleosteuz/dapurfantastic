@@ -26,6 +26,7 @@ export default function RecipesPage() {
   const [bookmarkedRecipes, setBookmarkedRecipes] = useState<(string | number)[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | number | null>(null);
+  const [loading, setLoading] = useState(true);
 
   // Ambil user login dari Supabase Auth
   useEffect(() => {
@@ -34,11 +35,9 @@ export default function RecipesPage() {
         data: { user },
       } = await supabase.auth.getUser();
       setUserId(user?.id ?? null);
+      setLoading(false);
     };
     getUser();
-
-    // Ambil resep
-    fetchRecipes();
   }, []);
 
   // Ambil bookmark user jika sudah login
@@ -52,10 +51,13 @@ export default function RecipesPage() {
   }, [userId]);
 
   // Ambil resep dari Supabase
-  const fetchRecipes = async () => {
-    const { data } = await supabase.from("recipes").select("*").order("id", { ascending: true });
-    if (data) setRecipes(data);
-  };
+  useEffect(() => {
+    const fetchRecipes = async () => {
+      const { data } = await supabase.from("recipes").select("*").order("id", { ascending: true });
+      if (data) setRecipes(data);
+    };
+    fetchRecipes();
+  }, []);
 
   // Toggle bookmark ke database
   const toggleBookmark = async (recipeId: string | number) => {
@@ -91,6 +93,38 @@ export default function RecipesPage() {
     setDeletingId(null);
   };
 
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
+
+  // Tampilkan pesan jika user belum login (lebih menarik & rapi)
+  if (!userId && !loading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-gradient-to-br from-beige-50 via-white to-beige-100">
+        <Header />
+        <main className="flex flex-1 flex-col items-center justify-center">
+          <div className="bg-white/90 rounded-xl shadow-lg px-8 py-10 flex flex-col items-center max-w-md w-full border border-beige-200 mt-8">
+            <div className="flex items-center justify-center w-14 h-14 rounded-full bg-teal-50 mb-4">
+              <svg width="32" height="32" fill="none">
+                <circle cx="16" cy="16" r="16" fill="#14b8a6" fillOpacity="0.1" />
+                <path d="M16 18c3.866 0 7 1.343 7 3v2H9v-2c0-1.657 3.134-3 7-3Z" stroke="#14b8a6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <circle cx="16" cy="12" r="4" stroke="#14b8a6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2 text-center">Akses Terbatas</h2>
+            <p className="mb-6 text-gray-600 text-center">
+              Silakan <span className="text-teal-600 font-semibold">login</span> terlebih dahulu untuk melihat semua resep favorit dan fitur lengkap KitchenBuddy.
+            </p>
+            <Link href="/login" className="w-full">
+              <button className="w-full px-4 py-2 bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-lg font-semibold shadow hover:from-teal-600 hover:to-teal-700 transition">Login Sekarang</button>
+            </Link>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-beige-50 via-white to-beige-100">
       <Header />
@@ -104,7 +138,6 @@ export default function RecipesPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {recipes.map((recipe) => (
             <Card key={recipe.id} className="group cursor-pointer hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white">
-              {/* Gambar dihapus */}
               <CardContent className="p-6">
                 <div className="flex justify-between items-start mb-2">
                   <Link href={`/recipe/${recipe.id}`}>

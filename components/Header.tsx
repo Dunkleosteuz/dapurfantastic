@@ -1,14 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Menu, X, ChefHat, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AuthForm from "@/components/AuthForm";
+import { supabase } from "@/lib/supabaseClient";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => {
+      listener?.subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    window.location.reload();
+  };
 
   return (
     <>
@@ -37,10 +54,19 @@ export default function Header() {
             </nav>
 
             <div className="hidden md:flex items-center space-x-4">
-              <Button variant="outline" size="sm" className="border-teal-500 text-teal-500 hover:bg-teal-50" onClick={() => setShowAuthModal(true)}>
-                <User className="h-4 w-4 mr-2" />
-                Masuk
-              </Button>
+              {!user ? (
+                <Button variant="outline" size="sm" className="border-teal-500 text-teal-500 hover:bg-teal-50" onClick={() => setShowAuthModal(true)}>
+                  <User className="h-4 w-4 mr-2" />
+                  Masuk
+                </Button>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <span className="text-gray-700">Hello, {user.email}</span>
+                  <Button variant="outline" size="sm" className="border-red-500 text-red-500 hover:bg-red-50" onClick={handleLogout}>
+                    Logout
+                  </Button>
+                </div>
+              )}
             </div>
 
             {/* Mobile Menu Button */}
@@ -66,10 +92,19 @@ export default function Header() {
                   Tentang
                 </Link>
                 <div className="flex flex-col space-y-2 pt-4 border-t border-beige-200">
-                  <Button variant="outline" size="sm" className="justify-start border-teal-500 text-teal-500 hover:bg-teal-50" onClick={() => setShowAuthModal(true)}>
-                    <User className="h-4 w-4 mr-2" />
-                    Masuk
-                  </Button>
+                  {!user ? (
+                    <Button variant="outline" size="sm" className="justify-start border-teal-500 text-teal-500 hover:bg-teal-50" onClick={() => setShowAuthModal(true)}>
+                      <User className="h-4 w-4 mr-2" />
+                      Masuk
+                    </Button>
+                  ) : (
+                    <div className="flex items-center gap-3">
+                      <span className="text-gray-700">Hello, {user.email}</span>
+                      <Button variant="outline" size="sm" className="border-red-500 text-red-500 hover:bg-red-50" onClick={handleLogout}>
+                        Logout
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             </nav>
