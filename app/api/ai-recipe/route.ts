@@ -3,10 +3,11 @@ import { supabase } from "@/lib/supabaseClient";
 
 export const dynamic = "force-dynamic";
 
-// Fungsi parsing hasil AI menjadi bagian-bagian
+// Fungsi parsing hasil AI menjadi bagian-bagian (dengan summary)
 function parseAIRecipe(text: string) {
   const lines = text.split("\n").map((l) => l.trim());
   let title = "";
+  let summary = "";
   let rating: number | null = null;
   let cook_time: number | null = null;
   let prep_time: number | null = null;
@@ -20,6 +21,10 @@ function parseAIRecipe(text: string) {
   for (const line of lines) {
     if (/^nama resep[:]?/i.test(line)) {
       title = line.replace(/^nama resep[:]?/i, "").trim();
+      continue;
+    }
+    if (/^summary[:]?/i.test(line)) {
+      summary = line.replace(/^summary[:]?/i, "").trim();
       continue;
     }
     if (/^rating[:]?/i.test(line)) {
@@ -73,6 +78,7 @@ function parseAIRecipe(text: string) {
   }
   return {
     title: title || "Resep AI",
+    summary,
     rating,
     cook_time,
     prep_time,
@@ -88,13 +94,14 @@ export async function POST(req: NextRequest) {
   try {
     const { ingredients } = await req.json();
 
-    // PROMPT TANPA GAMBAR
+    // PROMPT DENGAN SUMMARY
     const prompt = `Saya punya bahan: ${ingredients.join(
       ", "
-    )}. Resep apa yang bisa saya buat? Berikan nama resep, rating (1-5), waktu masak (menit), waktu persiapan (menit), tingkat kesulitan, porsi, bahan, peralatan, dan langkah-langkahnya.
+    )}. Resep apa yang bisa saya buat? Berikan nama resep, summary (ringkasan singkat resep dalam 3-4 kalimat), rating (1-5), waktu masak (menit), waktu persiapan (menit), tingkat kesulitan, porsi, bahan, peralatan, dan langkah-langkahnya.
 Tampilkan hanya dengan format berikut (jangan tambahkan penjelasan lain di luar format ini):
 
 Nama Resep:
+Summary:
 Rating:
 Waktu Masak:
 Waktu Persiapan:
@@ -125,12 +132,13 @@ Langkah-langkah:
     // Parsing hasil AI
     const parsed = parseAIRecipe(recipeText);
 
-    // Insert ke tabel recipes
+    // Insert ke tabel recipes (dengan summary)
     const { data: recipeData, error: recipeError } = await supabase
       .from("recipes")
       .insert([
         {
           title: parsed.title,
+          summary: parsed.summary,
           description: recipeText,
           cook_time: parsed.cook_time,
           prep_time: parsed.prep_time,
@@ -179,6 +187,7 @@ Langkah-langkah:
       recipe: {
         id: recipeData.id,
         title: parsed.title,
+        summary: parsed.summary,
         description: recipeText,
         rating: parsed.rating,
         cook_time: parsed.cook_time,

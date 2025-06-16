@@ -26,6 +26,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     return NextResponse.json({
       id: recipe.id,
       title: recipe.title,
+      summary: recipe.summary, // <-- tambahkan summary di sini
       description: recipe.description,
       image: recipe.image_url,
       cookTime: recipe.cook_time,

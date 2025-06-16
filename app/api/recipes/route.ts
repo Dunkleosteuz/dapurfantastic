@@ -8,12 +8,15 @@ export async function POST(req: NextRequest) {
 
   // Buat prompt untuk Gemini
   const prompt = `
-Buatkan resep masakan sederhana dari bahan-bahan berikut:
+Buatkan resep masakan yang menarik dan lezat dari bahan-bahan berikut:
 ${Array.isArray(ingredients) ? ingredients.join(", ") : ingredients}.
 Tampilkan dengan format:
 Nama Resep:
+Summary: (ringkasan singkat resep dalam 3-4 kalimat)
+Rating:
 Porsi:
 Waktu Masak:
+Waktu Persiapan:
 Tingkat Kesulitan:
 Bahan-bahan:
 Cara Membuat:

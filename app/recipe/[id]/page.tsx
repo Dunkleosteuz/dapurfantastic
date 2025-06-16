@@ -10,10 +10,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
+import { supabase } from "@/lib/supabaseClient"; // Jika pakai Supabase Auth
 
 type Recipe = {
   id: string | number;
   title: string;
+  summary?: string;
   description: string;
   cookTime: string;
   prepTime: string;
@@ -31,8 +33,22 @@ export default function RecipeDetailPage() {
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [loading, setLoading] = useState(true);
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const [loadingBookmark, setLoadingBookmark] = useState(false);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
 
+  // Ambil user login dari Supabase Auth (atau ganti sesuai auth-mu)
+  useEffect(() => {
+    const getUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setUserId(user?.id ?? null);
+    };
+    getUser();
+  }, []);
+
+  // Ambil data resep
   useEffect(() => {
     setLoading(true);
     fetch(`/api/recipes/${recipeId}`)
@@ -44,6 +60,44 @@ export default function RecipeDetailPage() {
       .catch(() => setRecipe(null))
       .finally(() => setLoading(false));
   }, [recipeId]);
+
+  // Cek status bookmark saat halaman dibuka
+  useEffect(() => {
+    if (!userId || !recipeId) return;
+    fetch(`/api/bookmarks?user_id=${userId}&recipe_id=${recipeId}`)
+      .then((res) => res.json())
+      .then((data) => setIsBookmarked(data.isBookmarked));
+  }, [userId, recipeId]);
+
+  const handleBookmark = async () => {
+    if (!userId) {
+      toast.error("Silakan login untuk menyimpan favorit.");
+      return;
+    }
+    setLoadingBookmark(true);
+    if (isBookmarked) {
+      await fetch("/api/bookmarks", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: userId, recipe_id: recipeId }),
+      });
+      setIsBookmarked(false);
+      toast.success("Dihapus dari Favorit");
+    } else {
+      await fetch("/api/bookmarks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: userId, recipe_id: recipeId }),
+      });
+      setIsBookmarked(true);
+      toast.success("Disimpan ke Favorit");
+    }
+    setLoadingBookmark(false);
+  };
+
+  const toggleStep = (stepIndex: number) => {
+    setCompletedSteps((prev) => (prev.includes(stepIndex) ? prev.filter((i) => i !== stepIndex) : [...prev, stepIndex]));
+  };
 
   if (loading) {
     return (
@@ -67,10 +121,6 @@ export default function RecipeDetailPage() {
       </div>
     );
   }
-
-  const toggleStep = (stepIndex: number) => {
-    setCompletedSteps((prev) => (prev.includes(stepIndex) ? prev.filter((i) => i !== stepIndex) : [...prev, stepIndex]));
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-beige-50 via-white to-beige-100">
@@ -96,7 +146,7 @@ export default function RecipeDetailPage() {
                   </Badge>
                   <h1 className="text-3xl lg:text-4xl font-bold text-gray-900">{recipe.title}</h1>
                 </div>
-                <p className="text-lg text-gray-600 mb-6">{recipe.description}</p>
+                {recipe.summary && <p className="text-lg text-gray-600 mb-6">{recipe.summary}</p>}
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                   <div className="text-center p-4 bg-beige-50 rounded-lg">
@@ -179,8 +229,8 @@ export default function RecipeDetailPage() {
 
             {/* Action Buttons */}
             <div className="space-y-3">
-              <Button className="w-full bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700" onClick={() => setIsBookmarked(!isBookmarked)}>
-                <Bookmark className="h-4 w-4 mr-2" />
+              <Button className="w-full bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700" onClick={handleBookmark} disabled={loadingBookmark}>
+                <Bookmark className={`h-4 w-4 mr-2 ${isBookmarked ? "fill-teal-500 text-teal-500" : ""}`} />
                 {isBookmarked ? "Hapus dari Favorit" : "Simpan ke Favorit"}
               </Button>
             </div>

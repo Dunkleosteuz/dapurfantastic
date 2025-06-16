@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Clock, Star, ChefHat, Users, Bookmark } from "lucide-react";
+import { Clock, Star, ChefHat, Users, Bookmark, Trash2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,7 @@ export default function RecipesPage() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [bookmarkedRecipes, setBookmarkedRecipes] = useState<(string | number)[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | number | null>(null);
 
   // Ambil user login dari Supabase Auth
   useEffect(() => {
@@ -37,10 +38,6 @@ export default function RecipesPage() {
     getUser();
 
     // Ambil resep
-    const fetchRecipes = async () => {
-      const { data } = await supabase.from("recipes").select("*").order("id", { ascending: true });
-      if (data) setRecipes(data);
-    };
     fetchRecipes();
   }, []);
 
@@ -53,6 +50,12 @@ export default function RecipesPage() {
     };
     fetchBookmarks();
   }, [userId]);
+
+  // Ambil resep dari Supabase
+  const fetchRecipes = async () => {
+    const { data } = await supabase.from("recipes").select("*").order("id", { ascending: true });
+    if (data) setRecipes(data);
+  };
 
   // Toggle bookmark ke database
   const toggleBookmark = async (recipeId: string | number) => {
@@ -79,6 +82,15 @@ export default function RecipesPage() {
     }
   };
 
+  // Hapus resep dari Supabase
+  const handleDelete = async (id: string | number) => {
+    if (!confirm("Yakin ingin menghapus resep ini?")) return;
+    setDeletingId(id);
+    await supabase.from("recipes").delete().eq("id", id);
+    setRecipes((prev) => prev.filter((r) => r.id !== id));
+    setDeletingId(null);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-beige-50 via-white to-beige-100">
       <Header />
@@ -92,35 +104,30 @@ export default function RecipesPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {recipes.map((recipe) => (
             <Card key={recipe.id} className="group cursor-pointer hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white">
-              <div className="relative overflow-hidden rounded-t-lg">
-                <Link href={`/recipe/${recipe.id}`}>
-                  <img src={recipe.image_url || "https://images.pexels.com/photos/2338407/pexels-photo-2338407.jpeg"} alt={recipe.title} className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" />
-                </Link>
-                <div className="absolute top-4 left-4">
-                  <Badge className="bg-white/90 text-gray-800 hover:bg-white">
-                    <Star className="h-3 w-3 mr-1 fill-yellow-400 text-yellow-400" />
-                    {recipe.rating ?? 4.5}
-                  </Badge>
-                </div>
-                <div className="absolute top-4 right-4">
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    className="bg-white/90 hover:bg-white"
-                    onClick={async (e) => {
-                      e.preventDefault();
-                      await toggleBookmark(recipe.id);
-                    }}
-                  >
-                    <Bookmark className={`h-4 w-4 ${bookmarkedRecipes.includes(recipe.id) ? "fill-teal-500 text-teal-500" : ""}`} />
-                  </Button>
-                </div>
-              </div>
-
+              {/* Gambar dihapus */}
               <CardContent className="p-6">
-                <Link href={`/recipe/${recipe.id}`}>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-teal-600 transition-colors">{recipe.title}</h3>
-                </Link>
+                <div className="flex justify-between items-start mb-2">
+                  <Link href={`/recipe/${recipe.id}`}>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-teal-600 transition-colors">{recipe.title}</h3>
+                  </Link>
+                  <div className="flex gap-2">
+                    <Badge className="bg-white/90 text-gray-800 hover:bg-white">
+                      <Star className="h-3 w-3 mr-1 fill-yellow-400 text-yellow-400" />
+                      {recipe.rating ?? 4.5}
+                    </Badge>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="bg-white/90 hover:bg-white"
+                      onClick={async (e) => {
+                        e.preventDefault();
+                        await toggleBookmark(recipe.id);
+                      }}
+                    >
+                      <Bookmark className={`h-4 w-4 ${bookmarkedRecipes.includes(recipe.id) ? "fill-teal-500 text-teal-500" : ""}`} />
+                    </Button>
+                  </div>
+                </div>
                 <p className="text-gray-600 text-sm mb-4 line-clamp-2">{recipe.description}</p>
 
                 <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
@@ -138,9 +145,14 @@ export default function RecipesPage() {
                   </div>
                 </div>
 
-                <Link href={`/recipe/${recipe.id}`}>
-                  <Button className="w-full bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700">Lihat Resep Lengkap</Button>
-                </Link>
+                <div className="flex gap-2 mt-4">
+                  <Link href={`/recipe/${recipe.id}`} className="flex-1">
+                    <Button className="w-full bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700">Lihat Resep Lengkap</Button>
+                  </Link>
+                  <Button variant="destructive" size="icon" onClick={() => handleDelete(recipe.id)} disabled={deletingId === recipe.id} title="Hapus Resep">
+                    {deletingId === recipe.id ? <span className="animate-spin">⏳</span> : <Trash2 className="h-5 w-5" />}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}

@@ -1,6 +1,11 @@
 export function parseAIResult(str: string) {
   str = str.replace(/#+\s?/g, "").replace(/\*\*/g, "");
+
   const title = str.match(/Nama Resep:\s*(.*)/i)?.[1]?.trim() || str.match(/Resep:\s*(.*)/i)?.[1]?.trim() || str.match(/^([^\n]+)\n/)?.[1]?.trim() || "Resep AI";
+
+  // Ambil summary
+  const summary = str.match(/Summary:\s*([\s\S]*?)(?:Porsi:|Waktu Masak:|Tingkat Kesulitan:|Bahan:|Bahan-bahan:)/i)?.[1]?.trim() || "";
+
   const description = str.match(/Deskripsi:\s*([\s\S]*?)(?:Rating:|Waktu Masak:|Waktu Persiapan:|Tingkat Kesulitan:|Porsi:|Bahan:|Bahan-bahan:)/i)?.[1]?.trim() || "";
   const rating = Number(str.match(/Rating.*?:\s*([\d.]+)/i)?.[1]) || 0;
   const cookTime = str.match(/Waktu Masak.*?:\s*(.*)/i)?.[1]?.trim() || "";
@@ -23,6 +28,7 @@ export function parseAIResult(str: string) {
 
   return {
     title,
+    summary, // <-- tambahkan summary di sini
     description,
     rating,
     cookTime,
@@ -32,7 +38,6 @@ export function parseAIResult(str: string) {
     ingredients,
     equipment,
     instructions,
-    image: "",
     id: "",
   };
 }

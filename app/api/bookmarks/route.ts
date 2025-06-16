@@ -14,3 +14,15 @@ export async function DELETE(req: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ success: true });
 }
+
+// Tambahkan GET untuk cek status bookmark
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const user_id = searchParams.get("user_id");
+  const recipe_id = searchParams.get("recipe_id");
+  if (!user_id || !recipe_id) {
+    return NextResponse.json({ isBookmarked: false });
+  }
+  const { data } = await supabase.from("bookmarks").select("*").eq("user_id", user_id).eq("recipe_id", recipe_id).single();
+  return NextResponse.json({ isBookmarked: !!data });
+}
