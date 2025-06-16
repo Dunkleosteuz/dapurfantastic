@@ -10,7 +10,7 @@ export default function Footer() {
           <div>
             <div className="flex items-center space-x-2 mb-4">
               <ChefHat className="h-8 w-8 text-teal-400" />
-              <span className="text-2xl font-bold">RecipeAI</span>
+              <span className="text-2xl font-bold">KitchenBuddy</span>
             </div>
             <p className="text-gray-400 mb-4">
               Platform pencarian resep berbasis AI yang membantu kamu menemukan hidangan lezat dari bahan yang tersedia.
@@ -88,7 +88,7 @@ export default function Footer() {
             <ul className="space-y-2">
               <li className="flex items-center">
                 <Mail className="h-4 w-4 mr-2 text-teal-400" />
-                <span className="text-gray-400">hello@recipeai.com</span>
+                <span className="text-gray-400">hello@kitchenbuddy.com</span>
               </li>
               <li className="flex items-center">
                 <Phone className="h-4 w-4 mr-2 text-teal-400" />
@@ -104,7 +104,7 @@ export default function Footer() {
 
         <div className="border-t border-gray-800 mt-8 pt-8 text-center">
           <p className="text-gray-400">
-            © 2024 RecipeAI. Semua hak dilindungi. Dibuat dengan ❤️ untuk para pecinta kuliner.
+            © 2025 KitchenBuddy. Semua hak dilindungi. Dibuat dengan ❤️ untuk para pecinta kuliner.
           </p>
         </div>
       </div>

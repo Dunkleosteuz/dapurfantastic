@@ -6,7 +6,7 @@ import { Toaster } from "react-hot-toast";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "RecipeAI - Find Perfect Recipes with AI",
+  title: "KitchenBuddy - Find Perfect Recipes with AI",
   description: "Discover amazing recipes based on your available ingredients using AI-powered search",
 };
 

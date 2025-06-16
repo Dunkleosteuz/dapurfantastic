@@ -13,7 +13,7 @@ export default function AboutPage() {
         <div className="text-center mb-16">
           <div className="inline-flex items-center px-4 py-2 bg-teal-100 rounded-full text-teal-700 text-sm font-medium mb-6">
             <Sparkles className="h-4 w-4 mr-2" />
-            Tentang RecipeAI
+            Tentang KitchenBuddy
           </div>
           <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
             Revolusi Cara Kamu
@@ -22,7 +22,7 @@ export default function AboutPage() {
             </span>
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            RecipeAI adalah platform inovatif yang menggunakan kecerdasan buatan untuk membantu 
+            KitchenBuddy adalah platform inovatif yang menggunakan kecerdasan buatan untuk membantu
             kamu menemukan resep masakan terbaik berdasarkan bahan yang tersedia di rumah.
           </p>
         </div>
@@ -63,7 +63,7 @@ export default function AboutPage() {
         <div className="mb-16">
           <div className="text-center mb-12">
             <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-              Mengapa Memilih RecipeAI?
+              Mengapa Memilih KitchenBuddy?
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               Teknologi canggih yang dirancang khusus untuk pengalaman memasak yang lebih baik
@@ -116,7 +116,7 @@ export default function AboutPage() {
         <div className="bg-gradient-to-r from-teal-500 to-teal-600 rounded-2xl p-8 lg:p-12 text-white mb-16">
           <div className="text-center mb-8">
             <h2 className="text-3xl lg:text-4xl font-bold mb-4">
-              RecipeAI dalam Angka
+              KitchenBuddy dalam Angka
             </h2>
             <p className="text-teal-100 text-lg">
               Pencapaian yang membanggakan bersama komunitas kami
